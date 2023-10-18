@@ -59,7 +59,12 @@ module "eks_blueprints_addons" {
     })]
     description = "Cluster Proportional Autoscaler for CoreDNS Service"
   }
-
+  karpenter_node = {
+    iam_role_additional_policies = {
+      AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    }
+  }
+  
   #---------------------------------------
   # Metrics Server
   #---------------------------------------
