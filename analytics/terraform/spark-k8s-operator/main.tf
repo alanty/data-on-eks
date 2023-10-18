@@ -95,7 +95,7 @@ module "eks" {
 
       # Configure NVMe volumes in RAID0 configuration
       # https://github.com/awslabs/amazon-eks-ami/blob/056e31f8c7477e893424abce468cb32bbcd1f079/files/bootstrap.sh#L35C121-L35C126
-      # Mount will be: /mnt/k8s-disks
+      # Mount will be: /mnt/k8s-disks/0
       export LOCAL_DISKS='raid0'
       EOF
 
