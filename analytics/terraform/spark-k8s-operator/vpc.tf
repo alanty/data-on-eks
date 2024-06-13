@@ -12,33 +12,49 @@ module "vpc" {
   cidr = var.vpc_cidr
   azs  = local.azs
 
-  # Secondary CIDR block attached to VPC for EKS Control Plane ENI + Nodes + Pods
+  # Secondary CIDR block attached to VPC for large worker node subnets
   secondary_cidr_blocks = var.secondary_cidr_blocks
-
-  # 1/ EKS Data Plane secondary CIDR blocks for two subnets across two AZs for EKS Control Plane ENI + Nodes + Pods
-  # 2/ Two private Subnets with RFC1918 private IPv4 address range for Private NAT + NLB + Airflow + EC2 Jumphost etc.
-  private_subnets = concat(var.private_subnets, var.eks_data_plane_subnet_secondary_cidr)
 
   # ------------------------------
   # Optional Public Subnets for NAT and IGW for PoC/Dev/Test environments
   # Public Subnets can be disabled while deploying to Production and use Private NAT + TGW
   public_subnets     = var.public_subnets
   enable_nat_gateway = true
-  single_nat_gateway = true
+  single_nat_gateway = false
+  one_nat_gateway_per_az = true
+  #-------------------------------
+
+  # ------------------------------
+  # Private subnets across two AZs for EKS Control Plane ENI, TGW attachments and Private ELBs
+  private_subnets = var.private_subnets
+  #-------------------------------
+
+  # ------------------------------
+  # Private subnets across two AZs for EKS Control Plane ENI, TGW attachments and Private ELBs
+  database_subnets = var.eks_data_plane_subnet_secondary_cidr
+  create_database_subnet_group = false
+  # create_database_subnet_route_table = true
+  # create_database_nat_gateway_route = true
   #-------------------------------
 
   public_subnet_tags = {
+    # Tags subnets for ELB discovery
     "kubernetes.io/role/elb" = 1
   }
 
   private_subnet_tags = {
+    # Tags subnets for ELB discovery
     "kubernetes.io/role/internal-elb" = 1
+  }
+
+  database_subnet_tags = {
     # Tags subnets for Karpenter auto-discovery
     "karpenter.sh/discovery" = local.name
   }
-
   tags = local.tags
 }
+
+
 
 module "vpc_endpoints_sg" {
   source  = "terraform-aws-modules/security-group/aws"
@@ -54,7 +70,7 @@ module "vpc_endpoints_sg" {
     {
       rule        = "https-443-tcp"
       description = "VPC CIDR HTTPS"
-      cidr_blocks = join(",", module.vpc.private_subnets_cidr_blocks)
+      cidr_blocks = join(",", module.vpc.public_subnets_cidr_blocks, module.vpc.private_subnets_cidr_blocks, module.vpc.database_subnets_cidr_blocks)
     },
   ]
 

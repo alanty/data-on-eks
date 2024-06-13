@@ -12,10 +12,8 @@ module "eks" {
   cluster_endpoint_public_access = true
 
   vpc_id = module.vpc.vpc_id
-  # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the EKS Control Plane ENIs will be created
-  subnet_ids = compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
-    substr(cidr_block, 0, 4) == "100." ? subnet_id : null]
-  )
+  # Filtering only Secondary CIDR private subnets starting with "10.". Subnet IDs where the EKS Control Plane ENIs will be created
+  subnet_ids = module.vpc.private_subnets
 
   manage_aws_auth_configmap = true
   aws_auth_roles = [
@@ -113,9 +111,7 @@ module "eks" {
       name        = "core-node-group"
       description = "EKS managed node group example launch template"
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
-      subnet_ids = compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
-        substr(cidr_block, 0, 4) == "100." ? subnet_id : null]
-      )
+      subnet_ids = module.vpc.database_subnets
 
       min_size     = 3
       max_size     = 9
@@ -138,9 +134,7 @@ module "eks" {
       name        = "spark-ondemand-r5d"
       description = "Spark managed node group for Driver pods"
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
-      subnet_ids = [element(compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
-        substr(cidr_block, 0, 4) == "100." ? subnet_id : null]), 0)
-      ]
+      subnet_ids = module.vpc.database_subnets
 
       min_size     = 0
       max_size     = 20
@@ -172,9 +166,7 @@ module "eks" {
       name        = "spark-spot-48cpu"
       description = "Spark Spot node group for executor workloads"
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
-      subnet_ids = [element(compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
-        substr(cidr_block, 0, 4) == "100." ? subnet_id : null]), 0)
-      ]
+      subnet_ids = module.vpc.database_subnets
 
       min_size     = 0
       max_size     = 12
