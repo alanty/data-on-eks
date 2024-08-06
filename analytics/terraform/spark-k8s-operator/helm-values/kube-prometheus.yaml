@@ -1,9 +1,16 @@
+
 prometheus:
   prometheusSpec:
-    retention: 5h
+    # Increase Resources requested by the Prometheus Pod
+    resources:
+      requests:
+        cpu: "2"
+        memory: 1Gi
+    retention: 15d
     scrapeInterval: 30s
     evaluationInterval: 30s
     scrapeTimeout: 10s
+    # bump storage time locally for metrics
     storageSpec:
       volumeClaimTemplate:
         metadata:
@@ -14,7 +21,7 @@ prometheus:
             - ReadWriteOnce
           resources:
             requests:
-              storage: 50Gi
+              storage: 500Gi
     # Scrape Cost metrics for Karpenter and Yunikorn add-ons
     additionalScrapeConfigs:
       - job_name: yunikorn
@@ -42,6 +49,24 @@ prometheus:
 alertmanager:
   enabled: false
 
+# Disable scrapers that aren't functional in AWS
+kubeControllerManager:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeScheduler:
+  enabled: false
+
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: "2"
+      memory: 1Gi
+
 grafana:
   enabled: true
   defaultDashboardsEnabled: true
+  resources:
+   requests:
+     cpu: "2"
+     memory: 1Gi

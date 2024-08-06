@@ -128,8 +128,8 @@ yunikornDefaults:
                     memory: 500G
                     vcore: 50
                   max:
-                    memory: 800G
-                    vcore: 300
+                    memory: 100000G
+                    vcore: 10000
               - name: test
                 resources:
                   guaranteed:
