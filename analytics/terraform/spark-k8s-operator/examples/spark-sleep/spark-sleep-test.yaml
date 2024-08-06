@@ -26,12 +26,12 @@ spec:
   mainApplicationFile: "s3a://rotund-archive-463630279612-us-east-2/spark-sleep/scripts/spark-sleep.py"  # MainFile is the path to a bundled JAR, Python, or R file of the application
   arguments:
     - "330" # time to sleep
+    # - "5" # number of tasks to complete
   mode: cluster
   restartPolicy:
     type: Never
   sparkVersion: 3.5.1
   type: Python
-  pythonVersion: "3"
   sparkConf:
     # # IPv6 service address
     # "spark.kubernetes.driver.service.ipFamilies": "IPv6"
@@ -55,17 +55,15 @@ spec:
     "spark.metrics.conf.applications.sink.prometheusServlet.path": "/metrics/applications/prometheus/"
     # S3 auth settings
     "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider"
-  
   restartPolicy:
     type: OnFailure
     onFailureRetries: 3
     onFailureRetryInterval: 10
     onSubmissionFailureRetries: 5
     onSubmissionFailureRetryInterval: 20
-  
   driver:
     coreRequest: "0.1"
-    memory: 128m
+    memory: 512m
     labels:
       version: 3.5.1
     annotations:
@@ -110,8 +108,8 @@ spec:
         effect: "NoSchedule"
   executor:
     coreRequest: "0.1"
-    memory: 128m
-    instances: 5
+    memory: 512m
+    instances: 25
     labels:
       version: 3.5.1
     # annotations:
