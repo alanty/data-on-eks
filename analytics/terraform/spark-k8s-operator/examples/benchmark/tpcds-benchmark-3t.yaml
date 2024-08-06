@@ -17,16 +17,16 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: public.ecr.aws/data-on-eks/emr-on-eks-benchmark:3.1.2
+  image: 463630279612.dkr.ecr.us-east-2.amazonaws.com/spark-tcpds:3.5.1-hadoop3.4.0-20240619
   imagePullPolicy: IfNotPresent
-  sparkVersion: 3.1.2
+  sparkVersion: 3.5.1
   mainClass: com.amazonaws.eks.tpcds.BenchmarkSQL
   mainApplicationFile: local:///opt/spark/examples/jars/eks-spark-benchmark-assembly-1.0.jar
   arguments:
     # TPC-DS data location
-    - "s3://blogpost-sparkoneks-us-east-1/blog/BLOG_TPCDS-TEST-3T-partitioned"
+    - "s3a://rotund-archive-463630279612-us-east-2/TPCDS-Data-3T"
     # results location
-    - "s3://<S3_BUCKET>/TPCDS-TEST-3T-RESULT"
+    - "s3a://rotund-archive-463630279612-us-east-2/tcpds-output-3t"
     # Path to kit in the docker image
     - "/opt/tpcds-kit/tools"
     # Data Format
@@ -38,38 +38,42 @@ spec:
     # Optimize queries with hive tables
     - "false"
     # Filter queries, will run all if empty - "q98-v2.4,q99-v2.4,ss_max-v2.4,q95-v2.4"
-    - ""
+    - "q98-v2.4,q99-v2.4,ss_max-v2.4,q95-v2.4"
     # Logging set to WARN
     - "true"
   sparkConf:
     "spark.network.timeout": "2000s"
     "spark.executor.heartbeatInterval": "300s"
-    # AQE
-    "spark.sql.adaptive.enabled": "true"
-    "spark.sql.adaptive.localShuffleReader.enabled": "true"
-    "spark.sql.adaptive.coalescePartitions.enabled": "true"
-    "spark.sql.adaptive.skewJoin.enabled": "true"
-    # "spark.sql.adaptive.logLevel": "WARN"
-    # IRSA for S3 connection
-    "spark.kubernetes.executor.podNamePrefix": "benchmark-exec"
-    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider"
-    "spark.hadoop.fs.s3.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
-    "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version": "2"
+    # S3 settings
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider"
+    "spark.kubernetes.executor.podNamePrefix": "benchmark-3t"
+    "spark.executor.defaultJavaOptions": "-verbose:gc -XX:+UseG1GC"
+    "spark.driver.defaultJavaOptions": "-XX:+UseG1GC"
     "spark.executor.defaultJavaOptions": "-verbose:gc -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=70"
-    # Keep pods in a single AZ
-    # "spark.kubernetes.node.selector.topology.kubernetes.io/zone": "us-west-1b"
-    # "spark.kubernetes.node.selector.eks.amazonaws.com/capacityType": "ON_DEMAND"
     # -----------------------------------------------------
     # This block is very critical when you get errors like
     #     Exception in thread \"main\" io.fabric8.kubernetes.client.KubernetesClientException: An error has occurred
     #     Caused by: java.net.SocketTimeoutException: timeout
-    # spark.kubernetes.local.dirs.tmpfs: "true" # More details here https://spark.apache.org/docs/latest/running-on-kubernetes.html#using-ram-for-local-storage
-    spark.kubernetes.submission.connectionTimeout: "120000" # milliseconds
-    spark.kubernetes.submission.requestTimeout: "120000"
-    spark.kubernetes.driver.connectionTimeout: "120000"
-    spark.kubernetes.driver.requestTimeout: "120000"
+    # spark.kubernetes.local.dirs.tmpfs: "true"
+    spark.kubernetes.submission.connectionTimeout: "60000000"
+    spark.kubernetes.submission.requestTimeout: "60000000"
+    spark.kubernetes.driver.connectionTimeout: "60000000"
+    spark.kubernetes.driver.requestTimeout: "60000000"
     # spark.kubernetes.allocation.batch.size: "20" # default 5 but adjust according to your cluster size
     # -----------------------------------------------------
+    # Expose Spark metrics for Prometheus
+    "spark.ui.prometheus.enabled": "true"
+    "spark.executor.processTreeMetrics.enabled": "true"
+    "spark.kubernetes.driver.annotation.prometheus.io/scrape": "true"
+    "spark.kubernetes.driver.annotation.prometheus.io/path": "/metrics/executors/prometheus/"
+    "spark.kubernetes.driver.annotation.prometheus.io/port": "4040"
+    "spark.kubernetes.driver.service.annotation.prometheus.io/scrape": "true"
+    "spark.kubernetes.driver.service.annotation.prometheus.io/path": "/metrics/driver/prometheus/"
+    "spark.kubernetes.driver.service.annotation.prometheus.io/port": "4040"
+    "spark.metrics.conf.*.sink.prometheusServlet.class": "org.apache.spark.metrics.sink.PrometheusServlet"
+    "spark.metrics.conf.*.sink.prometheusServlet.path": "/metrics/driver/prometheus/"
+    "spark.metrics.conf.master.sink.prometheusServlet.path": "/metrics/master/prometheus/"
+    "spark.metrics.conf.applications.sink.prometheusServlet.path": "/metrics/applications/prometheus/"
   driver:
     cores: 4
     coreLimit: "4.1"
@@ -80,9 +84,9 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # ephemeral-storage requests and limits can be used to manage the storage utilization
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: SparkBenchmarking
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking"
         operator: "Exists"
         effect: "NoSchedule"
   executor:
@@ -97,9 +101,9 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # ephemeral-storage requests and limits can be used to manage the storage utilization
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: SparkBenchmarking
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking"
         operator: "Exists"
         effect: "NoSchedule"
   restartPolicy:
