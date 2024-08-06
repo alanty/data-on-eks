@@ -164,6 +164,59 @@ module "eks_data_addons" {
       EOT
       ]
     }
+    spark-benchmarking = {
+      values = [
+        <<-EOT
+      name: spark-benchmarking
+      clusterName: ${module.eks.cluster_name}
+      ec2NodeClass:
+        karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
+        subnetSelectorTerms:
+          tags:
+            Name: "${module.eks.cluster_name}-eks*"
+        securityGroupSelectorTerms:
+          tags:
+            Name: ${module.eks.cluster_name}-node
+        instanceStorePolicy: RAID0
+
+      nodePool:
+        labels:
+          - type: karpenter
+          - NodeGroupType: SparkBenchmarking
+          - multiArch: Spark
+        requirements:
+          - key: "karpenter.sh/capacity-type"
+            operator: In
+            values: ["spot", "on-demand"]
+          - key: "kubernetes.io/arch"
+            operator: In
+            values: ["amd64"]
+          - key: "karpenter.k8s.aws/instance-category"
+            operator: In
+            values: ["c","r"]
+          - key: "karpenter.k8s.aws/instance-family"
+            operator: In
+            values: ["c5d","r5d"]
+          - key: "karpenter.k8s.aws/instance-cpu"
+            operator: In
+            values: ["32", "36", "48", "64"]
+          - key: "karpenter.k8s.aws/instance-hypervisor"
+            operator: In
+            values: ["nitro"]
+          - key: "karpenter.k8s.aws/instance-generation"
+            operator: Gt
+            values: ["2"]
+        limits:
+          cpu: 10000
+          memory:  100Ti
+        disruption:
+          consolidationPolicy: WhenEmpty
+          consolidateAfter: 30s
+          expireAfter: 720h
+        weight: 100
+      EOT
+      ]
+    }
     spark-vertical-ebs-scale = {
       values = [
         <<-EOT
@@ -394,6 +447,7 @@ resource "kubernetes_storage_class" "default_gp3" {
   }
   depends_on = [kubernetes_annotations.disable_gp2]
 }
+
 
 
 
