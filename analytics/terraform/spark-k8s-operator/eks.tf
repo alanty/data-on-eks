@@ -126,9 +126,9 @@ module "eks" {
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
       subnet_ids = module.vpc.database_subnets
 
-      min_size     = 3
+      min_size     = 2
       max_size     = 9
-      desired_size = 3
+      desired_size = 2
 
       instance_types = ["m5.2xlarge"]
 
@@ -143,65 +143,34 @@ module "eks" {
       }
     }
 
-    spark_ondemand_r5d = {
-      name        = "spark-ondemand-r5d"
-      description = "Spark managed node group for Driver pods"
-      # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
-      subnet_ids = module.vpc.database_subnets
+    spark_benchmarking_c5d = {
+      name        = "spark-benchmarking-c5d"
+      description = "Spark managed node group for benchmarking"
+      # use a single AZ to reduce internode latency
+      subnet_ids = [module.vpc.database_subnets[0]]
 
+      
       min_size     = 0
       max_size     = 20
       desired_size = 0
-
-      instance_types = ["r5d.xlarge"] # r5d.xlarge 4vCPU - 32GB - 1 x 150 NVMe SSD - Up to 10Gbps - Up to 4,750 Mbps EBS Bandwidth
+      capacity_type  = "SPOT"
+      instance_types = ["c5d.9xlarge"] # c5d.9xlarge 36vCPU - 72GB - 1 x 900 NVMe SSD
 
       labels = {
         WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-on-demand-ca"
+        NodeGroupType = "spark-benchmarking-ca"
       }
 
       taints = [{
-        key    = "spark-on-demand-ca",
+        key    = "spark-benchmarking-ca",
         value  = true
         effect = "NO_SCHEDULE"
       }]
 
       tags = {
-        Name          = "spark-ondemand-r5d"
+        Name          = "spark-benchmarking-ca"
         WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-on-demand-ca"
-      }
-    }
-
-    # ec2-instance-selector --vcpus=48 --gpus 0 -a arm64 --allow-list '.*d.*'
-    # This command will give you the list of the instances with similar vcpus for arm64 dense instances
-    spark_spot_x86_48cpu = {
-      name        = "spark-spot-48cpu"
-      description = "Spark Spot node group for executor workloads"
-      # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
-      subnet_ids = module.vpc.database_subnets
-
-      min_size     = 0
-      max_size     = 12
-      desired_size = 0
-
-      instance_types = ["r5d.12xlarge", "r6id.12xlarge", "c5ad.12xlarge", "c5d.12xlarge", "c6id.12xlarge", "m5ad.12xlarge", "m5d.12xlarge", "m6id.12xlarge"] # 48cpu - 2 x 1425 NVMe SSD
-
-      labels = {
-        WorkerType    = "SPOT"
-        NodeGroupType = "spark-spot-ca"
-      }
-
-      taints = [{
-        key    = "spark-spot-ca"
-        value  = true
-        effect = "NO_SCHEDULE"
-      }]
-
-      tags = {
-        Name          = "spark-node-grp"
-        WorkerType    = "SPOT"
-        NodeGroupType = "spark"
+        NodeGroupType = "spark-benchmarking-ca"
       }
     }
   }
