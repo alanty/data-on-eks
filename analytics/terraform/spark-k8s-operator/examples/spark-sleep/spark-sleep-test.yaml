@@ -21,12 +21,12 @@ metadata:
     # Assign the job to a Yunikorn Queue via label.
     queue: root.test
 spec:
-  image: 463630279612.dkr.ecr.us-east-2.amazonaws.com/spark:3.5.1-hadoop3.4.0-20240619 # apache/spark:3.5.1-scala2.12-java11-python3-ubuntu
+  image: 463630279612.dkr.ecr.us-east-1.amazonaws.com/spark:3.5.1-hadoop3.4.0-20240808 # apache/spark:3.5.1-scala2.12-java11-python3-ubuntu
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: "s3a://rotund-archive-463630279612-us-east-2/spark-sleep/scripts/spark-sleep.py"  # MainFile is the path to a bundled JAR, Python, or R file of the application
+  mainApplicationFile: "s3a://rotund-archive-463630279612-us-east-1/spark-sleep/scripts/spark-sleep.py"  # MainFile is the path to a bundled JAR, Python, or R file of the application
   arguments:
-    - "330" # time to sleep
-    # - "5" # number of tasks to complete
+    - "300" # time to sleep
+    - "5" # number of tasks to complete
   mode: cluster
   restartPolicy:
     type: Never
@@ -36,8 +36,8 @@ spec:
     # # IPv6 service address
     # "spark.kubernetes.driver.service.ipFamilies": "IPv6"
     # K8s configs
-    "spark.kubernetes.driver.podTemplateFile": "s3a://rotund-archive-463630279612-us-east-2/spark-sleep/templates/spark-sleep-test-driver-template.yaml"
-    "spark.kubernetes.executor.podTemplateFile": "s3a://rotund-archive-463630279612-us-east-2/spark-sleep/templates/spark-sleep-test-exec-template.yaml"
+    "spark.kubernetes.driver.podTemplateFile": "s3a://rotund-archive-463630279612-us-east-1/spark-sleep/templates/spark-sleep-test-driver-template.yaml"
+    "spark.kubernetes.executor.podTemplateFile": "s3a://rotund-archive-463630279612-us-east-1/spark-sleep/templates/spark-sleep-test-exec-template.yaml"
     # "spark.kubernetes.executor.podNamePrefix": "spark-sleep"
     "spark.kubernetes.memoryOverheadFactor": "0.3"
     # Expose Spark metrics for Prometheus
@@ -109,7 +109,7 @@ spec:
   executor:
     coreRequest: "0.1"
     memory: 512m
-    instances: 25
+    instances: 5
     labels:
       version: 3.5.1
     # annotations:
