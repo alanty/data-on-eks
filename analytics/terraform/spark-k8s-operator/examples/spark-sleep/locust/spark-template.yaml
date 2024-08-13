@@ -7,7 +7,7 @@ metadata:
     app: spark-sleep
     applicationId: spark-sleep
     # Assign the job to a Yunikorn Queue via label.
-    queue: root.test
+    queue: root.prod
 spec:
   image: 463630279612.dkr.ecr.us-east-1.amazonaws.com/spark:3.5.1-hadoop3.4.0-20240808 # apache/spark:3.5.1-scala2.12-java11-python3-ubuntu
   imagePullPolicy: IfNotPresent
