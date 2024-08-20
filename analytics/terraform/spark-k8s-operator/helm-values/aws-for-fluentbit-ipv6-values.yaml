@@ -5,6 +5,10 @@ global:
 hostNetwork: true
 dnsPolicy: ClusterFirstWithHostNet
 
+# tolerate all taints
+tolerations:
+  - operator: "Exists"
+
 service:
   parsersFiles:
     - /fluent-bit/parsers/parsers.conf
