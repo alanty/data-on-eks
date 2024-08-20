@@ -16,6 +16,7 @@ module "eks_data_addons" {
       name: spark-compute-optimized
       clusterName: ${module.eks.cluster_name}
       ec2NodeClass:
+        amiFamily: AL2
         karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
         subnetSelectorTerms:
           tags:
@@ -68,6 +69,7 @@ module "eks_data_addons" {
       name: spark-graviton-memory-optimized
       clusterName: ${module.eks.cluster_name}
       ec2NodeClass:
+        amiFamily: AL2
         karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
         subnetSelectorTerms:
           tags:
@@ -119,6 +121,7 @@ module "eks_data_addons" {
       name: spark-memory-optimized
       clusterName: ${module.eks.cluster_name}
       ec2NodeClass:
+        amiFamily: AL2
         karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
         subnetSelectorTerms:
           tags:
@@ -170,6 +173,7 @@ module "eks_data_addons" {
       name: spark-benchmarking
       clusterName: ${module.eks.cluster_name}
       ec2NodeClass:
+        amiFamily: AL2
         karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
         subnetSelectorTerms:
           tags:
@@ -223,6 +227,7 @@ module "eks_data_addons" {
       name: spark-benchmarking-scale
       clusterName: ${module.eks.cluster_name}
       ec2NodeClass:
+        amiFamily: AL2
         karpenterRole: ${split("/", module.eks_blueprints_addons.karpenter.node_iam_role_arn)[1]}
         subnetSelectorTerms:
           tags:
@@ -246,7 +251,7 @@ module "eks_data_addons" {
             values: ["amd64"]
           - key: "karpenter.k8s.aws/instance-family"
             operator: In
-            values: ["r4", "r4", "r5", "r5d", "r5n", "r5dn", "r5b", "m4", "m5", "m5n", "m5zn", "m5dn", "m5d", "c4", "c5", "c5n", "c5d"]
+            values: ["r5", "r5d", "r5n", "r5dn", "r5b", "m5", "m5n", "m5zn", "m5dn", "m5d", "c5", "c5n", "c5d"]
           - key: "kubernetes.io/arch"
             operator: In
             values: ["amd64"]
