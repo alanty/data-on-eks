@@ -129,11 +129,11 @@ module "eks" {
       min_size     = 2
       max_size     = 9
       desired_size = 2
-
+      capacity_type  = "ON_DEMAND"
       instance_types = ["m5.2xlarge"]
+      ami_type = "AL2_x86_64"
 
       labels = {
-        WorkerType    = "ON_DEMAND"
         NodeGroupType = "core"
       }
 
@@ -143,8 +143,8 @@ module "eks" {
       }
     }
 
-    spark_benchmarking_c5d = {
-      name        = "spark-benchmarking-c5d"
+    spark_drivers = {
+      name        = "spark-drivers"
       description = "Spark managed node group for benchmarking"
       # use a single AZ to reduce internode latency
       subnet_ids = [module.vpc.database_subnets[0]]
@@ -154,23 +154,52 @@ module "eks" {
       max_size     = 20
       desired_size = 0
       capacity_type  = "SPOT"
-      instance_types = ["c5d.9xlarge"] # c5d.9xlarge 36vCPU - 72GB - 1 x 900 NVMe SSD
+      instance_types = ["r5d.4xlarge"] # r5d.4xlarge (16vCPU, 128GB, 2 x 300 NVMe SSD, 100GB EBS)
+      ami_type = "AL2_x86_64"
 
       labels = {
-        WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-benchmarking-ca"
+        NodeGroupType = "spark-benchmarking-drivers"
       }
 
       taints = [{
-        key    = "spark-benchmarking-ca",
+        key    = "spark-benchmarking-drivers",
         value  = true
         effect = "NO_SCHEDULE"
       }]
 
       tags = {
-        Name          = "spark-benchmarking-ca"
-        WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-benchmarking-ca"
+        Name          = "spark-benchmarking-drivers"
+        NodeGroupType = "spark-benchmarking-drivers"
+      }
+    }
+
+    spark_exec = {
+      name        = "spark-exec"
+      description = "Spark managed node group for benchmarking"
+      # use a single AZ to reduce internode latency
+      subnet_ids = [module.vpc.database_subnets[0]]
+
+      
+      min_size     = 0
+      max_size     = 20
+      desired_size = 0
+      capacity_type  = "SPOT"
+      instance_types = ["r5d.4xlarge"] # r5d.4xlarge (16vCPU, 128GB, 2 x 300 NVMe SSD, 100GB EBS)
+      ami_type = "AL2_x86_64"
+
+      labels = {
+        NodeGroupType = "spark-benchmarking-exec"
+      }
+
+      taints = [{
+        key    = "spark-benchmarking-exec",
+        value  = true
+        effect = "NO_SCHEDULE"
+      }]
+
+      tags = {
+        Name          = "spark-benchmarking-exec"
+        NodeGroupType = "spark-benchmarking-exec"
       }
     }
   }
