@@ -310,7 +310,7 @@ module "eks_data_addons" {
       nodePool:
         labels:
           - type: karpenter
-          - provisioner: spark-vertical-ebs-scale
+          - NodeGroupType: spark-vertical-ebs-scale
         requirements:
           - key: "karpenter.sh/capacity-type"
             operator: In
