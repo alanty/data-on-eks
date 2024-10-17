@@ -19,7 +19,7 @@ spec:
   mode: cluster
   image: public.ecr.aws/data-on-eks/emr-on-eks-benchmark:3.1.2
   imagePullPolicy: IfNotPresent
-  sparkVersion: 3.1.2
+  sparkVersion: 3.5.3
   mainClass: com.amazonaws.eks.tpcds.BenchmarkSQL
   mainApplicationFile: local:///opt/spark/examples/jars/eks-spark-benchmark-assembly-1.0.jar
   arguments:
@@ -52,7 +52,7 @@ spec:
     # "spark.sql.adaptive.logLevel": "WARN"
     # IRSA for S3 connection
     "spark.kubernetes.executor.podNamePrefix": "benchmark-exec"
-    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider"
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider"
     "spark.hadoop.fs.s3.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
     "spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version": "2"
     "spark.executor.defaultJavaOptions": "-verbose:gc -XX:+UseParallelGC -XX:InitiatingHeapOccupancyPercent=70"
@@ -80,9 +80,9 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # ephemeral-storage requests and limits can be used to manage the storage utilization
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: "spark-benchmarking-c5d"
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking-c5d"
         operator: "Exists"
         effect: "NoSchedule"
   executor:
@@ -97,9 +97,9 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # ephemeral-storage requests and limits can be used to manage the storage utilization
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: "spark-benchmarking-c5d"
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking-c5d"
         operator: "Exists"
         effect: "NoSchedule"
   restartPolicy:

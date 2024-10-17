@@ -18,7 +18,7 @@ spec:
   mode: cluster
   image: public.ecr.aws/data-on-eks/emr-on-eks-benchmark:3.1.2
   imagePullPolicy: IfNotPresent
-  sparkVersion: 3.1.2
+  sparkVersion: 3.5.3
   mainClass: com.amazonaws.eks.tpcds.DataGeneration
   mainApplicationFile: local:///opt/spark/examples/jars/eks-spark-benchmark-assembly-1.0.jar
   arguments:
@@ -47,7 +47,7 @@ spec:
     # "spark.local.dir": "/data1"
 
     # S3 settings
-    "spark.hadoop.fs.s3a.aws.credentials.provider": "com.amazonaws.auth.WebIdentityTokenCredentialsProvider"
+    "spark.hadoop.fs.s3a.aws.credentials.provider": "software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider"
     "spark.hadoop.fs.s3a.fast.upload": "true"
     "spark.hadoop.fs.s3a.path.style.access": "true"
     "spark.hadoop.fs.s3.impl": "org.apache.hadoop.fs.s3a.S3AFileSystem"
@@ -78,9 +78,9 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # ephemeral-storage requests and limits can be used to manage the storage utilization
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: "spark-benchmarking-c5d"
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking-c5d"
         operator: "Exists"
         effect: "NoSchedule"
   executor:
@@ -94,8 +94,8 @@ spec:
     # we do not need to leverage a hostPath mount or volume to leverage that storage.
     # the data generation can utilize a large amount of storage
     nodeSelector:
-      provisioner: spark-compute-optimized
+      NodeGroupType: "spark-benchmarking-c5d"
     tolerations:
-      - key: "spark-compute-optimized"
+      - key: "spark-benchmarking-c5d"
         operator: "Exists"
         effect: "NoSchedule"
