@@ -142,9 +142,9 @@ module "eks" {
       }
     }
 
-    spark_ondemand_r5d = {
-      name        = "spark-ondemand-r5d"
-      description = "Spark managed node group for Driver pods"
+    spark_benchmarking_c5d = {
+      name        = "spark-benchmarking-c5d"
+      description = "Spark managed node group for TPCDS Benchmark"
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
       subnet_ids = [element(compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
         substr(cidr_block, 0, 4) == "100." ? subnet_id : null]), 0)
@@ -154,23 +154,23 @@ module "eks" {
       max_size     = 20
       desired_size = 0
 
-      instance_types = ["r5d.xlarge"] # r5d.xlarge 4vCPU - 32GB - 1 x 150 NVMe SSD - Up to 10Gbps - Up to 4,750 Mbps EBS Bandwidth
+      instance_types = ["c5d.9xlarge"] # c5.9xlarge 36vCPU - 72GB - 1 x 900 NVMe SSD - Up to 10Gbps - Up to 9,500 Mbps EBS Bandwidth
 
       labels = {
         WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-on-demand-ca"
+        NodeGroupType = "spark-benchmarking-c5d"
       }
 
       taints = [{
-        key    = "spark-on-demand-ca",
+        key    = "spark-benchmarking-c5d",
         value  = true
         effect = "NO_SCHEDULE"
       }]
 
       tags = {
-        Name          = "spark-ondemand-r5d"
+        Name          = "spark-benchmarking-c5d"
         WorkerType    = "ON_DEMAND"
-        NodeGroupType = "spark-on-demand-ca"
+        NodeGroupType = "spark-benchmarking-c5d"
       }
     }
   }
