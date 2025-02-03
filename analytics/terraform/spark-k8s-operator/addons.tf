@@ -371,6 +371,24 @@ module "eks_data_addons" {
     version = "2.0.2"
     values = [
       <<-EOT
+        controller:
+          # -- Node selector for controller pods.
+          nodeSelector:
+            NodeGroupType: spark_benchmark_ssd
+          # -- List of node taints to tolerate for controller pods.
+          tolerations:
+            - key: spark-benchmark
+              operator: Exists
+              effect: NoSchedule
+        webhook:
+          # -- Node selector for controller pods.
+          nodeSelector:
+            NodeGroupType: spark_benchmark_ssd
+          # -- List of node taints to tolerate for controller pods.
+          tolerations:
+            - key: spark-benchmark
+              operator: Exists
+              effect: NoSchedule
         spark:
           # -- List of namespaces where to run spark jobs.
           # If empty string is included, all namespaces will be allowed.
