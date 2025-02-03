@@ -116,7 +116,7 @@ module "eks" {
       }
     }
 
-    # The following Node groups are a placeholder to create Node groups for running Spark TPC-DS benchmarks
+    # The following Node groups are a placeholder to create Node groups for running Spark scale benchmarks
     spark_benchmark_ebs = {
       name        = "spark_benchmark_ebs"
       description = "Managed node group for Spark Benchmarks with EBS using x86 or ARM"
@@ -142,15 +142,12 @@ module "eks" {
           ebs = {
             volume_size           = 300
             volume_type           = "gp3"
-            iops                  = 3000
-            encrypted             = true
             delete_on_termination = true
           }
         }
       }
-
       # Change the instance type as you desire and match with ami_type
-      instance_types = ["r8g.12xlarge"] # Change Instance type to run the benchmark with various instance types
+      instance_types = ["r6g.2xlarge"] # 8vCPU and 64GiB
 
       labels = {
         NodeGroupType = "spark_benchmark_ebs"
@@ -162,6 +159,7 @@ module "eks" {
       }
     }
 
+    # This Group can be used to back the spark operator, we can put it on a stand alone box via to ensure the best performance.
     spark_benchmark_ssd = {
       name        = "spark_benchmark_ssd"
       description = "Managed node group for Spark Benchmarks with NVMEe SSD using x86 or ARM"
@@ -179,27 +177,35 @@ module "eks" {
       max_size     = 8
       desired_size = var.spark_benchmark_ssd_desired_size # Change min and desired to 6 for running benchmarks
 
-      instance_types = ["c5d.12xlarge"] # c5d.12xlarge = 2 x 900 NVMe SSD
+      instance_types = ["c5.9xlarge"] # 36vCPU and 72GiB
 
-      cloudinit_pre_nodeadm = [
-        {
-          content_type = "application/node.eks.aws"
-          content      = <<-EOT
-            ---
-            apiVersion: node.eks.aws/v1alpha1
-            kind: NodeConfig
-            spec:
-              instance:
-                localStorage:
-                  strategy: RAID0
-          EOT
-        }
-      ]
+      # cloudinit_pre_nodeadm = [
+      #   {
+      #     content_type = "application/node.eks.aws"
+      #     content      = <<-EOT
+      #       ---
+      #       apiVersion: node.eks.aws/v1alpha1
+      #       kind: NodeConfig
+      #       spec:
+      #         instance:
+      #           localStorage:
+      #             strategy: RAID0
+      #     EOT
+      #   }
+      # ]
 
       labels = {
         NodeGroupType = "spark_benchmark_ssd"
       }
 
+      taints = {
+        gpu = {
+          key      = "spark-benchmark"
+          effect   = "NO_SCHEDULE"
+          operator = "EXISTS"
+        }
+      }      
+      
       tags = {
         Name          = "spark_benchmark_ssd"
         NodeGroupType = "spark_benchmark_ssd"
