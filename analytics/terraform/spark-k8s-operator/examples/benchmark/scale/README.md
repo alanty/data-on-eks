@@ -19,7 +19,7 @@ locust
 From there you can configure the parameters in the web form and start the test.
 
 #### Without GUI/Headless
-Providing the `--headless` option disables the webui and instead runs automatically with the supplied parameters:  
+Providing the `--headless` option disables the webui and instead runs automatically with the default parameters:  
 ```bash
 locust --headless --only-summary -u 1 -r 1
 ```
@@ -27,13 +27,13 @@ This starts a single User over 1s.
 
 #### Parameters
 **Spark test options:**
-```
+```bash
   --jobs-per-min  Jobs creation rate per User (default: 1)
-  --jobs-limit  Maximum number of jobs submitted per User (default: 5)
+  --jobs-limit  Maximum number of jobs submitted per User (default: 5). If a value <=0 is supplied, the processes will submit jobs in sequence as fast as possible
   --spark-job-template  path to SparkApplication file to be used to submit the spark jobs (default: spark-app-template.yaml)
 ```
 **Common options:**
-```
+```bash
   -u, --users <int>     Peak number of concurrent Locust users. Primarily used together with --headless or --autostart. Can be changed during a test by keyboard inputs w, W (spawn 1, 10 users) and s, S (stop 1, 10 users)
   -r, --spawn-rate <float>
                         Rate to spawn users at (users per second). Primarily used together with --headless or --autostart
@@ -41,16 +41,31 @@ This starts a single User over 1s.
                         Stop after the specified amount of time, e.g. (300s, 20m, 3h, 1h30m, etc.). Only used together with --headless or --autostart. Defaults to run forever.
   --only-summary        Disable periodic printing of request stats during --headless run
 ```
+
 When determining the load to apply, the number of users and job submission rate are multiplicative. i.e.: 
 ```
 Num Users * Jobs per Min = total submission rate
 ```
-For example: we can Submit 30 jobs a minute, until 100 jobs are submitted with both of these commands below
+and 
+```
+Num Users * Jobs Limit = total number of jobs
+```
+
+**Examples**
+To submit 50 Jobs as fast as possible with a single process:
+```bash
+locust --headless --only-summary -u 1 -r 1 --jobs-per-min -1 --jobs-limit 50
+```
+You can increase the rate at which calls are made by increasing the number of users spawned (concurrency). 
+```bash
+locust --headless --only-summary -u 1 -r 1 --jobs-per-min -1 --jobs-limit 50
+```
+
+Submit 30 jobs a minute, until 100 jobs are submitted with both of these commands below
 ```bash
 locust --headless --only-summary -u 1 -r 1 --jobs-per-min 30 --jobs-limit 100
 ```
 or 
-
 ```bash
 locust --headless --only-summary -u 2 -r 1 --jobs-per-min 15 --jobs-limit 50
 ```

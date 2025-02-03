@@ -42,7 +42,7 @@ class SparkK8sClient:
         
     def delete_namespace_spark_application(self, namespace):
         # delete ALL matching objects in the 
-        # TODO: this is a bit overkill, we should scope this to only the jobs submitted by this user
+        # TODO: this is a bit overkill, we should scope this to only the jobs submitted by this User
         return self.custom_objects_api.delete_collection_namespaced_custom_object(
                 group="sparkoperator.k8s.io",
                 version="v1beta2",

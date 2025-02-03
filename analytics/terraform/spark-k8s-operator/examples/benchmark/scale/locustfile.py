@@ -1,7 +1,7 @@
-from locust import User, task, events, between, constant_throughput
+from locust import User, task, events, constant, constant_throughput
 from k8s_client import SparkK8sClient
 import uuid
-import os
+import time
 
 
 @events.init_command_line_parser.add_listener
@@ -16,14 +16,20 @@ def on_test_start(environment, **kwargs):
     print("jobs_per_min = ", str(environment.parsed_options.jobs_per_min), "constant_throughput = ", str(environment.parsed_options.jobs_per_min / 60))
     print("jobs_limit = ", str(environment.parsed_options.jobs_limit))
     print("spark_job_template = ", environment.parsed_options.spark_job_template)
-    # constant_throughput is calls per second,  dividing by 60s to get per second rate
-    SparkOperatorUser.wait_time = constant_throughput((environment.parsed_options.jobs_per_min / 60))
+    # jobs_per_min is > 0 then we should submit at the given rate
+    if environment.parsed_options.jobs_per_min > 0:
+        # constant_throughput is calls per second, dividing by 60s to get per second rate
+        SparkOperatorUser.wait_time = constant_throughput((environment.parsed_options.jobs_per_min / 60))
+    # if jobs_per_min is <= 0 then we should submit as fast as possible
+    else:
+        SparkOperatorUser.wait_time = constant(0) # this is the default wait_time
     SparkOperatorUser.jobs_limit = environment.parsed_options.jobs_limit
     SparkOperatorUser.spark_template = environment.parsed_options.spark_job_template
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
     print("Load test is stopping. Check the logs for issues cleaning up.")
+    #TODO: issue final Delete call for all namespaces we worked with?
 
 class SparkOperatorUser(User):
     
@@ -50,4 +56,7 @@ class SparkOperatorUser(User):
                 import traceback
                 self.environment.runner.log_exception(f"{type(e).__name__}: {str(e)}")
         else:
+            # TODO: Add a counter/metric for how long it took to finish submitting all jobs?
             print("Maximum Job submissions reached")
+            # delay next attempt by 5min
+            time.sleep(300)
