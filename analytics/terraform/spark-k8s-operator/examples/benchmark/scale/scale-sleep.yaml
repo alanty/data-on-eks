@@ -1,0 +1,39 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: {{JOB_NAME}} # this value is not used for load testing.
+  namespace: spark-team-a
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: public.ecr.aws/PLACEHOLDER
+  imagePullPolicy: IfNotPresent
+  mainApplicationFile: local:///opt/spark/examples/src/main/python/pi-sleep.py
+  arguments: ["1", "1800"]
+  sparkVersion: 3.5.3
+  sparkConf:
+    spark.kubernetes.executor.podNamePrefix: {{JOB_NAME}}
+    # spark.kubernetes.submission.connectionTimeout: "120000" # milliseconds
+    # spark.kubernetes.submission.requestTimeout: "120000"
+    # spark.kubernetes.driver.connectionTimeout: "120000"
+    # spark.kubernetes.driver.requestTimeout: "120000"
+    # spark.kubernetes.allocation.batch.size: "20" # default 5 but adjust according to your cluster size
+  restartPolicy:
+    type: Never
+  # 8vCPU / 0.1 = 80 pods per node on r6g.2xlarge
+  # 64GiB / 0.5GiB = 128GiB per node on r6g.2xlarge
+  driver:
+    cores: 1
+    coreRequest: "0.1"
+    memory: 512m
+    serviceAccount: spark-team-a
+    nodeSelector:
+      NodeGroupType: spark_benchmark_ebs
+  executor:
+    instances: 20
+    coreRequest: "0.1"
+    cores: 1
+    memory: 512m
+    nodeSelector:
+      NodeGroupType: spark_benchmark_ebs
