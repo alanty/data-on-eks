@@ -368,7 +368,7 @@ module "eks_data_addons" {
   #---------------------------------------------------------------
   enable_spark_operator = true
   spark_operator_helm_config = {
-    version = "2.0.2"
+    version = "2.1.0"
     values = [
       <<-EOT
         controller:
@@ -431,7 +431,7 @@ module "eks_data_addons" {
   #---------------------------------------------------------------
   enable_yunikorn = var.enable_yunikorn
   yunikorn_helm_config = {
-    version = "1.6.0"
+    version = "1.6.1"
     values  = [templatefile("${path.module}/helm-values/yunikorn-values.yaml", {})]
   }
 
