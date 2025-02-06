@@ -1,3 +1,3 @@
 FROM spark:3.5.3
 
-COPY pi-sleep.py /opt/spark/examples/src/main/python/
+COPY spark-pi-sleep.jar /opt/spark/examples/jars/
