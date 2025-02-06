@@ -4,16 +4,17 @@ metadata:
   name: load-test # this value is overwritten by Locust
   namespace: spark-team-a
 spec:
-  type: Python
-  pythonVersion: "3"
+  type: Scala
   mode: cluster
-  image: public.ecr.aws/m8u6z8z4/manabu-test:pi-sleep
+  image: public.ecr.aws/m8u6z8z4/manabu-test:pi-sleep-v0.0.2
   imagePullPolicy: IfNotPresent
-  mainApplicationFile: local:///opt/spark/examples/src/main/python/pi-sleep.py
-  arguments: ["1", "1800"]
+  mainApplicationFile: local:///opt/spark/examples/jars/spark-pi-sleep.jar
+  mainClass: org.example.JavaSparkPiSleep
+  arguments: ["5", "10"]
   sparkVersion: 3.5.3
   sparkConf:
     spark.kubernetes.executor.podNamePrefix: load-test # this value is overwritten by Locust
+    spark.testing.reservedMemory: "1" # THIS IS UNSAFE. DO NOT DO THIS IN NON-TESTING ENVIRONMENTS.
     # spark.kubernetes.submission.connectionTimeout: "120000" # milliseconds
     # spark.kubernetes.submission.requestTimeout: "120000"
     # spark.kubernetes.driver.connectionTimeout: "120000"
@@ -35,7 +36,7 @@ spec:
     instances: 5
     coreRequest: "0.1"
     cores: 1
-    memory: 512m
+    memory: 256m
     memoryOverhead: 0m
     nodeSelector:
       NodeGroupType: spark_benchmark_ebs
