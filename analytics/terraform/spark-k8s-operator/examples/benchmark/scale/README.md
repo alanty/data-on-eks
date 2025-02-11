@@ -70,6 +70,39 @@ or
 locust --headless --only-summary -u 2 -r 1 --jobs-per-min 15 --jobs-limit 50
 ```
 
+To run the same test 3 times in a row with sleep in between
+```bash
+JOBS_MIN=-1
+JOBS_LIMIT=10
+TIMEOUT="7m"
+USERS=1
+RATE=1
+
+sleep 240
+locust --headless --only-summary -u $USERS -r $RATE -t $TIMEOUT --jobs-per-min $JOBS_MIN --jobs-limit $JOBS_LIMIT 2>&1 | tee -a load-test-$(date -u +"%Y-%m-%dT%H:%M:%SZ").log 
+
+echo "\n~~~~~~~~~~~~~~~~~~~~~~~Sleeping for 3min to separate tests~~~~~~~~~~~~~~~~~~~~~~\n"
+sleep 240
+
+locust --headless --only-summary -u $USERS -r $RATE -t $TIMEOUT --jobs-per-min $JOBS_MIN --jobs-limit $JOBS_LIMIT 2>&1 | tee -a load-test-$(date -u +"%Y-%m-%dT%H:%M:%SZ").log
+
+echo "\n~~~~~~~~~~~~~~~~~~~~~~~Sleeping for 3min to separate tests~~~~~~~~~~~~~~~~~~~~~~\\n"
+sleep 240
+
+locust --headless --only-summary -u $USERS -r $RATE -t $TIMEOUT --jobs-per-min $JOBS_MIN --jobs-limit $JOBS_LIMIT 2>&1 | tee -a load-test-$(date -u +"%Y-%m-%dT%H:%M:%SZ").log
+```
+
+to delete all of the nodes in the Spark ASG and start fresh you can run: 
+```bash
+for ID in $(aws autoscaling describe-auto-scaling-instances --output text \
+--query "AutoScalingInstances[?AutoScalingGroupName=='eks-spark_benchmark_ebs-20250203215338743800000001-aeca66e7-0385-19a7-a895-d021a5f67933'].InstanceId");
+do
+aws ec2 terminate-instances --instance-ids $ID
+done
+```
+
+```
+
 
 ### Docker image for SparkApplications
 
