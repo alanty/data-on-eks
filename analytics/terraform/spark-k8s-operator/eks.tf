@@ -176,6 +176,14 @@ module "eks" {
         NodeGroupType = "spark_benchmark_ebs"
       }
 
+      taints = {
+        benchmark = {
+          key      = "spark-benchmark"
+          effect   = "NO_SCHEDULE"
+          operator = "EXISTS"
+        }
+      }  
+
       tags = {
         Name          = "spark_benchmark_ebs"
         NodeGroupType = "spark_benchmark_ebs"
@@ -222,7 +230,7 @@ module "eks" {
       }
 
       taints = {
-        gpu = {
+        benchmark = {
           key      = "spark-benchmark"
           effect   = "NO_SCHEDULE"
           operator = "EXISTS"
