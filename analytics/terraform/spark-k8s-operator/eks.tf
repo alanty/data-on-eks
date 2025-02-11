@@ -30,6 +30,30 @@ module "eks" {
   ))
 
   #---------------------------------------
+  # Amazon EKS Managed Add-ons
+  #---------------------------------------
+  cluster_addons = {
+    coredns = {
+      preserve = true
+    }
+    vpc-cni = {
+      before_compute = true
+      preserve = true
+      most_recent    = true # To ensure access to the latest settings provided
+      configuration_values = jsonencode({
+        env = {
+          # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
+          ENABLE_PREFIX_DELEGATION = "true"
+          WARM_PREFIX_TARGET       = "1"
+        }
+      })
+    }
+    kube-proxy = {
+      preserve = true
+    }
+  }
+
+  #---------------------------------------
   # Note: This can further restricted to specific required for each Add-on and your application
   #---------------------------------------
   # Extend cluster security group rules
