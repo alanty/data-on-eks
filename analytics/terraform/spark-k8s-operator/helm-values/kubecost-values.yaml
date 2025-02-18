@@ -26,6 +26,14 @@ global:
     fqdn: http://kube-prometheus-stack-prometheus.kube-prometheus-stack.svc:9090
     enabled: false
 
+# enable scraping for kubecost metrics in kube-prometheus-stack
+serviceMonitor:
+  enabled: true
+  networkCosts:
+    enabled: true
+prometheusRule:
+  enabled: true
+
 # If you have node-exporter and/or KSM running on your cluster, follow this step to disable the Kubecost included versions.
 prometheus:
   nodeExporter:

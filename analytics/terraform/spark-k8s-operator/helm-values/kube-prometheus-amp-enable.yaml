@@ -58,17 +58,6 @@ prometheus:
           - __meta_kubernetes_endpoint_port_name
           action: keep
           regex: karpenter;http-metrics
-      - job_name: kubecost
-        honor_labels: true
-        scrape_interval: 1m
-        scrape_timeout: 10s
-        metrics_path: /metrics
-        scheme: http
-        dns_sd_configs:
-        - names:
-          - kubecost-cost-analyzer.kubecost.svc.cluster.local
-          type: 'A'
-          port: 9003
   # Monitors for Spark Jobs
   additionalPodMonitors:
     - name: "spark-job-monitoring"
