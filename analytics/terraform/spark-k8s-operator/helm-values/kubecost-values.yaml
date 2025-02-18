@@ -63,9 +63,13 @@ forecasting:
     tag: v0.1.19
 
 networkCosts:
+  enabled: true
   image:
     repository: public.ecr.aws/kubecost/kubecost-network-costs
     tag: v0.17.6
+  config:
+    services:
+      amazon-web-services: true
 
 clusterController:
   image:
