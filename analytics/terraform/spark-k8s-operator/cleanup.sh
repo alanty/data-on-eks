@@ -45,6 +45,9 @@ for arn in $(aws resourcegroupstaggingapi get-resources \
     aws elbv2 delete-target-group --target-group-arn "$arn" --no-cli-pager; \
   done
 
+#the ELB ENIs may take a moment to cleanup, they will block the SG deletion until gone
+sleep 10 
+
 echo "Destroying Security Groups..."
 for sg in $(aws ec2 describe-security-groups \
   --filters "Name=tag:elbv2.k8s.aws/cluster,Values=${STACK_NAME}" \
