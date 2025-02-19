@@ -7,11 +7,8 @@ global:
   # These options connect kubecost to the local grafana installed with kube-prometheus-stack
   grafana:
     enabled: false
-    domainName: kube-prometheus-stack-grafana.kube-prometheus-stack.svc  # example grafana domain Ignored if enabled: true
+    domainName: kube-prometheus-stack-grafana.kube-prometheus-stack.svc  # domain for the prometheus service in the cluster
     scheme: "http"  # http or https, for the domain name above.
-    # proxy: true  # If true, the kubecost frontend will route to your grafana through its service endpoint
-    #   fqdn: kube-prometheus-stack-grafana.kube-prometheus-stack.svc
-
   # pricingCsv:
   #   enabled: false
   #   location:
@@ -58,18 +55,15 @@ kubecostModel:
   image: public.ecr.aws/kubecost/cost-model
 
 forecasting:
-  image:
-    repository: public.ecr.aws/kubecost/kubecost-modeling
-    tag: v0.1.19
+  image: public.ecr.aws/kubecost/kubecost-modeling:v0.1.19
 
 networkCosts:
+  # enable networking costs daemonset 
   enabled: true
-  image:
-    repository: public.ecr.aws/kubecost/kubecost-network-costs
-    tag: v0.17.6
   config:
     services:
       amazon-web-services: true
+  image: public.ecr.aws/kubecost/kubecost-network-costs:v0.17.6
 
 clusterController:
   image:
@@ -92,3 +86,7 @@ persistentVolume:
 
 reporting:
   productAnalytics: false
+
+# kubecostProductConfigs:
+#   carbonEstimates: # Enables Kubecost beta carbon estimation endpoints /assets/carbon and /allocations/carbon
+#     enabled: true
