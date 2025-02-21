@@ -6,7 +6,7 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: public.ecr.aws/m8u6z8z4/manabu-test:pi-sleep-v0.0.2
+  image: public.ecr.aws/data-on-eks/spark:pi-sleep-v0.0.2
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/examples/jars/spark-pi-sleep.jar
   mainClass: org.example.JavaSparkPiSleep

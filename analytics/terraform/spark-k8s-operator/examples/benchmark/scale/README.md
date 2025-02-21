@@ -122,16 +122,31 @@ aws ec2 terminate-instances --instance-ids $ID
 done
 ```
 
+## Test Spark Application
+
+Source code for the Spark Application used for testing is available [here](./spark-pi-sleep).
+
+You can build your Docker image by following steps below.
+
+### Compile
+
+From the [spark-pi-sleep](./spark-pi-sleep/) directory:
+
+```bash
+./gradlew build
 ```
 
 
-### Docker image for SparkApplications
+### Build Docker image
 
-`public.ecr.aws/m8u6z8z4/manabu-test:pi-sleep`
+From the [docker](./docker/) directory:
 
-See the [pi-sleep.py](./pi-sleep.py) for what it does. It adds the sleep duration parameter to the example pi script from upstream.
-`Note: this image is currently only supported on amd64 based instances.`
+```bash
+cp ../spark-pi-sleep/build/libs/spark-pi-sleep-1.0.jar spark-pi-sleep.jar
+docker build .
+```
 
+### Using the Docker image
 
 You can then specify sleep duration like below.
 
@@ -140,6 +155,5 @@ apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 spec:
   mainApplicationFile: local:///opt/spark/examples/src/main/python/pi-sleep.py
-  arguments: ["1", "1800"]
+  arguments: ["1", "1800"] # sleep for 1800 seconds
 ```
-
