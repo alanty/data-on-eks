@@ -2,7 +2,7 @@ apiVersion: sparkoperator.k8s.io/v1beta2
 kind: SparkApplication
 metadata:
   name: load-test # this value is overwritten by Locust
-  namespace: spark-team-a
+  namespace: spark-team-a # this value is overwritten by Locust
 spec:
   type: Scala
   mode: cluster
@@ -10,7 +10,7 @@ spec:
   imagePullPolicy: IfNotPresent
   mainApplicationFile: local:///opt/spark/examples/jars/spark-pi-sleep.jar
   mainClass: org.example.JavaSparkPiSleep
-  arguments: ["5", "10"]
+  arguments: ["5", "3600"]
   sparkVersion: 3.5.3
   sparkConf:
     spark.kubernetes.executor.podNamePrefix: load-test # this value is overwritten by Locust
