@@ -23,9 +23,9 @@ class Configuration:
         self.template_path= parsed.spark_template
         self.name_prefix = parsed.spark_name_prefix
         self.name_suffix_length = parsed.spark_name_length
-        self.max_jobs = parsed.spark_max_jobs
-        self.max_failures = parsed.spark_max_failures
-        self.submission_rate = parsed.spark_rate
+        self.max_jobs = parsed.job_limit
+        self.max_failures = parsed.jobs_max_failures
+        self.submission_rate = parsed.jobs_per_min
         self.namespaces = parsed.spark_namespaces.split(",")
         self.cleanup_apps = not parsed.no_spark_cleanup
 
@@ -85,21 +85,21 @@ def on_parser_init(parser):
         default=8
     )
     parser.add_argument(
-        "--spark-max-jobs",
+        "--job-limit",
         type=int,
         help="Maximum number of applications to submit per user",
         env_var="LOAD_TEST_JOB_SIZE",
         default=3
     )
     parser.add_argument(
-        "--spark-max-failures",
+        "--jobs-max-failures",
         type=int,
         help="Maximum number of failures before stopping",
         env_var="LOAD_TEST_MAX_FAILURES",
         default=5
     )
     parser.add_argument(
-        "--spark-rate",
+        "--jobs-per-min",
         type=float,
         help="Submissions per minute",
         env_var="LOAD_TEST_SUBMISSION_RATE",
@@ -271,4 +271,3 @@ class SparkLoadTest(HttpUser):
         except Exception as e:
             batch_failures += 1
             self.logger.error(f"Failed to submit Spark application: {str(e)}")
-
