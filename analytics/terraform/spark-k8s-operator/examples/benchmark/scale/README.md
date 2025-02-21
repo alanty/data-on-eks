@@ -25,13 +25,34 @@ locust --headless --only-summary -u 1 -r 1
 ```
 This starts a single User over 1s.
 
+```bash
+locust --headless --only-summary -u 3 -r 1 --job-limit 2000 --jobs-per-min 1000 --spark-namespaces spark-team-a,spark-team-b,spark-team-c
+```
+
+This runs 6000 jobs over three namespaces ('`spark-team-a`, `spark-team-b`, `spark-team-c`) with 1000 submissions per minute (limited by CPU).
+
+
 #### Parameters
 **Spark test options:**
+
 ```bash
-  --jobs-per-min  Jobs creation rate per User (default: 1)
-  --jobs-limit  Maximum number of jobs submitted per User (default: 5). If a value <=0 is supplied, the processes will submit jobs in sequence as fast as possible
-  --spark-job-template  path to SparkApplication file to be used to submit the spark jobs (default: spark-app-template.yaml)
+  --spark-template SPARK_TEMPLATE
+                        Path to SparkApplication template
+  --spark-name-prefix SPARK_NAME_PREFIX
+                        Prefix for generated names
+  --spark-name-length SPARK_NAME_LENGTH
+                        Length of random name suffix
+  --job-limit JOB_LIMIT
+                        Maximum number of applications to submit per user
+  --jobs-max-failures JOBS_MAX_FAILURES
+                        Maximum number of failures before stopping
+  --jobs-per-min JOBS_PER_MIN
+                        Submissions per minute
+  --spark-namespaces SPARK_NAMESPACES
+                        Comma-separated list of namespaces (e.g., spark-team-a,spark-team-b)
+  --no-spark-cleanup    If set, Spark applications will not be deleted after test
 ```
+
 **Common options:**
 ```bash
   -u, --users <int>     Peak number of concurrent Locust users. Primarily used together with --headless or --autostart. Can be changed during a test by keyboard inputs w, W (spawn 1, 10 users) and s, S (stop 1, 10 users)
