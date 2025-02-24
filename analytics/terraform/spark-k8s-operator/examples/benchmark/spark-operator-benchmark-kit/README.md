@@ -1,4 +1,4 @@
-# spark-operator-load-test
+# Spark-Operator Benchmark kit
 
 ## Getting started
 Locust creates User processes that execute Tasks based on the configuration in the `locustfile.py` file. This allows us to create SparkApplication CRDs at a consistent rate and scale.  
