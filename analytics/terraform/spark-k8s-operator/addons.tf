@@ -50,7 +50,7 @@ resource "aws_eks_access_entry" "karpenter_nodes" {
 #---------------------------------------------------------------
 module "eks_data_addons" {
   source  = "aws-ia/eks-data-addons/aws"
-  version = "1.34" # ensure to update this to the latest/desired version
+  version = "1.35" # ensure to update this to the latest/desired version
 
   oidc_provider_arn = module.eks.oidc_provider_arn
 
@@ -368,7 +368,7 @@ module "eks_data_addons" {
   #---------------------------------------------------------------
   enable_spark_operator = true
   spark_operator_helm_config = {
-    version = "2.0.2"
+    version = "2.1.0"
     values = [
       <<-EOT
         spark:
@@ -414,7 +414,7 @@ module "eks_data_addons" {
   #---------------------------------------------------------------
   enable_yunikorn = var.enable_yunikorn
   yunikorn_helm_config = {
-    version = "1.6.0"
+    version = "1.6.1"
     values  = [templatefile("${path.module}/helm-values/yunikorn-values.yaml", {})]
   }
 
@@ -460,7 +460,7 @@ module "eks_data_addons" {
 #---------------------------------------------------------------
 module "ebs_csi_driver_irsa" {
   source                = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version               = "~> 5.34"
+  version               = "~> 5.52"
   role_name_prefix      = format("%s-%s-", local.name, "ebs-csi-driver")
   attach_ebs_csi_policy = true
   oidc_providers = {
@@ -477,7 +477,7 @@ module "ebs_csi_driver_irsa" {
 #---------------------------------------------------------------
 module "eks_blueprints_addons" {
   source  = "aws-ia/eks-blueprints-addons/aws"
-  version = "~> 1.2"
+  version = "~> 1.20"
 
   cluster_name      = module.eks.cluster_name
   cluster_endpoint  = module.eks.cluster_endpoint
@@ -490,15 +490,19 @@ module "eks_blueprints_addons" {
   eks_addons = {
     aws-ebs-csi-driver = {
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+      most_recent              = true
     }
     coredns = {
-      preserve = true
+      preserve    = true
+      most_recent = true
     }
     vpc-cni = {
-      preserve = true
+      preserve    = true
+      most_recent = true
     }
     kube-proxy = {
-      preserve = true
+      preserve    = true
+      most_recent = true
     }
   }
 
@@ -516,7 +520,7 @@ module "eks_blueprints_addons" {
   #---------------------------------------
   enable_cluster_autoscaler = true
   cluster_autoscaler = {
-    chart_version = "9.43.1"
+    chart_version = "9.46.2"
     values = [templatefile("${path.module}/helm-values/cluster-autoscaler-values.yaml", {
       aws_region     = var.region,
       eks_cluster_id = module.eks.cluster_name
@@ -535,7 +539,7 @@ module "eks_blueprints_addons" {
     }
   }
   karpenter = {
-    chart_version       = "1.0.6"
+    chart_version       = "1.2.1"
     repository_username = data.aws_ecrpublic_authorization_token.token.user_name
     repository_password = data.aws_ecrpublic_authorization_token.token.password
   }
@@ -574,7 +578,7 @@ module "eks_blueprints_addons" {
 
   enable_aws_load_balancer_controller = true
   aws_load_balancer_controller = {
-    chart_version = "1.9.2"
+    chart_version = "1.11.0"
     set = [{
       name  = "enableServiceMutatorWebhook"
       value = "false"
@@ -583,7 +587,7 @@ module "eks_blueprints_addons" {
 
   enable_ingress_nginx = true
   ingress_nginx = {
-    version = "4.11.3"
+    version = "4.12.0"
     values  = [templatefile("${path.module}/helm-values/nginx-values.yaml", {})]
   }
 
@@ -607,7 +611,7 @@ module "eks_blueprints_addons" {
         amp_url             = "https://aps-workspaces.${local.region}.amazonaws.com/workspaces/${aws_prometheus_workspace.amp[0].id}"
       }) : templatefile("${path.module}/helm-values/kube-prometheus.yaml", {})
     ]
-    chart_version = "65.5.1"
+    chart_version = "69.5.2"
     set_sensitive = [
       {
         name  = "grafana.adminPassword"
@@ -625,7 +629,7 @@ module "eks_blueprints_addons" {
 #tfsec:ignore:*
 module "s3_bucket" {
   source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "~> 3.0"
+  version = "~> 4.6"
 
   bucket_prefix = "${local.name}-spark-logs-"
 
