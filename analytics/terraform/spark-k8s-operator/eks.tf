@@ -19,8 +19,12 @@ module "eks" {
   # Amazon EKS Managed Add-ons
   #---------------------------------------
   cluster_addons = {
-    coredns                = {}
-    eks-pod-identity-agent = {}
+    coredns                = {
+      most_recent    = true
+    }
+    eks-pod-identity-agent = {
+      most_recent    = true
+    }
     vpc-cni = {
       before_compute = true
       preserve       = true
@@ -34,16 +38,21 @@ module "eks" {
       })
     }
 
-    kube-proxy = {}
+    kube-proxy = {
+      most_recent    = true
+    }
     aws-ebs-csi-driver = {
       service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
       most_recent              = true
     }
 
-    metrics-server = {}
+    metrics-server = {
+      most_recent    = true
+    }
     amazon-cloudwatch-observability = {
       preserve                 = true
       service_account_role_arn = aws_iam_role.cloudwatch_observability_role.arn
+      most_recent    = true
     }
   }
 
