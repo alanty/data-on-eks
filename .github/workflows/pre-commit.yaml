@@ -66,8 +66,10 @@ jobs:
         if: steps.changes.outputs.src== 'true'
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
-          restore-keys: ${{ runner.os }}-terraform-
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+            ${{ runner.os }}-terraform-
 
       - name: Terraform min/max versions
         uses: clowdhaus/terraform-min-max@v1.3.1
@@ -119,8 +121,10 @@ jobs:
         if: steps.changes.outputs.src== 'true'
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
-          restore-keys: ${{ runner.os }}-terraform-
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+            ${{ runner.os }}-terraform-
 
       - name: Install tfsec
         if: steps.changes.outputs.src== 'true'
