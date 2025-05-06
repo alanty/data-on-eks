@@ -32,6 +32,7 @@ repos:
           - --args=--only=terraform_workspace_remote
       - id: terraform_validate
         args:
-          - --hook-config=--parallelism-limit=1
-          # - --hook-config=--retry-once-with-cleanup=true
+          # Parallel terraform init can cause problems when using a cache: https://github.com/hashicorp/terraform/issues/31964
+          # this task is running across all of the blueprints in the github checks and can cause failures for missing/corrupted dependencies
+          - --hook-config=--parallelism-limit=1 
         exclude: (docs|modules)
