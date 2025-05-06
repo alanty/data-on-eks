@@ -69,6 +69,10 @@ jobs:
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
           restore-keys: ${{ runner.os }}-terraform-
 
+      - name: Confirm Terraform plugin cache
+        if: steps.changes.outputs.src== 'true'
+        run: ls -la ${{ env.TF_PLUGIN_CACHE_DIR }}
+
       - name: Terraform min/max versions
         uses: clowdhaus/terraform-min-max@v1.3.2
         if: steps.changes.outputs.src== 'true'
@@ -121,6 +125,10 @@ jobs:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
           restore-keys: ${{ runner.os }}-terraform-
+          
+      - name: Confirm Terraform plugin cache
+        if: steps.changes.outputs.src== 'true'
+        run: ls -la ${{ env.TF_PLUGIN_CACHE_DIR }}
 
       - name: Install tfsec
         if: steps.changes.outputs.src== 'true'
