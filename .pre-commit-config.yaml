@@ -34,5 +34,5 @@ repos:
         args:
           # Parallel terraform init can cause problems when using a cache: https://github.com/hashicorp/terraform/issues/31964
           # this task is running across all of the blueprints in the github checks and can cause failures for missing/corrupted dependencies
-          - --hook-config=--parallelism-limit=1 
+          - --hook-config=--parallelism-limit=1
         exclude: (docs|modules)
