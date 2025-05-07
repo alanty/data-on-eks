@@ -69,6 +69,15 @@ jobs:
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
           restore-keys: ${{ runner.os }}-terraform-
 
+      # - name: Restore Terraform Cache
+      #   id: cache-primes-restore
+      #   uses: actions/cache/restore@v4
+      #   if: steps.changes.outputs.src== 'true'
+      #   with:
+      #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+      #     restore-keys: ${{ runner.os }}-terraform-
+
       - name: Terraform min/max versions
         uses: clowdhaus/terraform-min-max@v1.3.2
         if: steps.changes.outputs.src== 'true'
@@ -91,6 +100,12 @@ jobs:
         with:
           terraform-version: ${{ steps.minMax.outputs.minVersion }}
           args: 'terraform_validate --color=always --show-diff-on-failure --files $(ls *.tf)'
+          
+      # - name: Save Terraform Cache
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
 
   preCommitMaxVersion:
     name: Max TF pre-commit
@@ -122,6 +137,15 @@ jobs:
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
           restore-keys: ${{ runner.os }}-terraform-
 
+      # - name: Restore Terraform Cache
+      #   id: cache-primes-restore
+      #   uses: actions/cache/restore@v4
+      #   if: steps.changes.outputs.src== 'true'
+      #   with:
+      #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+      #     restore-keys: ${{ runner.os }}-terraform-
+
       - name: Install tfsec
         if: steps.changes.outputs.src== 'true'
         run: curl -sSLo ./tfsec https://github.com/aquasecurity/tfsec/releases/download/${{ env.TFSEC_VERSION }}/tfsec-$(uname)-amd64 && chmod +x tfsec && sudo mv tfsec /usr/bin/
@@ -138,3 +162,9 @@ jobs:
           terraform-version: ${{ steps.minMax.outputs.maxVersion }}
           terraform-docs-version: ${{ env.TERRAFORM_DOCS_VERSION }}
           tflint-version: ${{ env.TFLINT_VERSION }}
+
+      # - name: Save Terraform Cache
+      #   uses: actions/cache/save@v4
+      #   with:
+      #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
+      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
