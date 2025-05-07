@@ -12,7 +12,7 @@ on:
 env:
   TERRAFORM_DOCS_VERSION: v0.20.0
   TFSEC_VERSION: v1.28.14
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+  # TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
   TFLINT_VERSION: v0.56.0
 
 concurrency:
@@ -57,17 +57,9 @@ jobs:
             src:
               - '${{ matrix.directory }}/*.tf'
 
-      - name: Config Terraform plugin cache
-        if: steps.changes.outputs.src== 'true'
-        run: mkdir --parents ${{ env.TF_PLUGIN_CACHE_DIR }}
-
-      - name: Cache Terraform
-        uses: actions/cache@v4
-        if: steps.changes.outputs.src== 'true'
-        with:
-          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
-          restore-keys: ${{ runner.os }}-terraform-
+      # - name: Config Terraform plugin cache
+      #   if: steps.changes.outputs.src== 'true'
+      #   run: mkdir --parents ${{ env.TF_PLUGIN_CACHE_DIR }}
 
       # - name: Restore Terraform Cache
       #   id: restore-cache
@@ -75,8 +67,10 @@ jobs:
       #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
-      #     restore-keys: ${{ runner.os }}-terraform-
+      #     key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-terraform-${{ github.base_ref }}
+      #       ${{ runner.os }}-terraform-
 
       - name: Terraform min/max versions
         uses: clowdhaus/terraform-min-max@v1.3.2
@@ -106,7 +100,7 @@ jobs:
       #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+      #     key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
 
   preCommitMaxVersion:
     name: Max TF pre-commit
@@ -126,17 +120,9 @@ jobs:
             src:
               - '**/*.tf'
 
-      - name: Config Terraform plugin cache
-        if: steps.changes.outputs.src== 'true'
-        run: mkdir --parents ${{ env.TF_PLUGIN_CACHE_DIR }}
-
-      - name: Cache Terraform
-        uses: actions/cache@v4
-        if: steps.changes.outputs.src== 'true'
-        with:
-          path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
-          restore-keys: ${{ runner.os }}-terraform-
+      # - name: Config Terraform plugin cache
+      #   if: steps.changes.outputs.src== 'true'
+      #   run: mkdir --parents ${{ env.TF_PLUGIN_CACHE_DIR }}
 
       # - name: Restore Terraform Cache
       #   id: restore-cache
@@ -144,8 +130,10 @@ jobs:
       #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
-      #     restore-keys: ${{ runner.os }}-terraform-
+      #     key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-terraform-${{ github.base_ref }}
+      #       ${{ runner.os }}-terraform-
 
       - name: Install tfsec
         if: steps.changes.outputs.src== 'true'
@@ -169,4 +157,4 @@ jobs:
       #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ steps.restore-cache.outputs.cache-primary-key }}
+      #     key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
