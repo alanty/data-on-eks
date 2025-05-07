@@ -70,7 +70,7 @@ jobs:
           restore-keys: ${{ runner.os }}-terraform-
 
       # - name: Restore Terraform Cache
-      #   id: cache-primes-restore
+      #   id: restore-cache
       #   uses: actions/cache/restore@v4
       #   if: steps.changes.outputs.src== 'true'
       #   with:
@@ -103,9 +103,10 @@ jobs:
 
       # - name: Save Terraform Cache
       #   uses: actions/cache/save@v4
+      #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+      #     key: ${{ steps.restore-cache.outputs.cache-primary-key }}
 
   preCommitMaxVersion:
     name: Max TF pre-commit
@@ -138,7 +139,7 @@ jobs:
           restore-keys: ${{ runner.os }}-terraform-
 
       # - name: Restore Terraform Cache
-      #   id: cache-primes-restore
+      #   id: restore-cache
       #   uses: actions/cache/restore@v4
       #   if: steps.changes.outputs.src== 'true'
       #   with:
@@ -165,6 +166,7 @@ jobs:
 
       # - name: Save Terraform Cache
       #   uses: actions/cache/save@v4
+      #   if: steps.changes.outputs.src== 'true'
       #   with:
       #     path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-      #     key: ${{ runner.os }}-terraform-${{ hashFiles('**/versions.tf') }}
+      #     key: ${{ steps.restore-cache.outputs.cache-primary-key }}
