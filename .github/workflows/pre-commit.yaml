@@ -12,7 +12,7 @@ on:
 env:
   TERRAFORM_DOCS_VERSION: v0.20.0
   TFSEC_VERSION: v1.28.14
-  # TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform.d/plugin-cache
   TFLINT_VERSION: v0.56.0
 
 concurrency:
