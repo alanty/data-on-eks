@@ -69,9 +69,9 @@ jobs:
           # restore latest matching cache to the tf cache dir
           # matches exact branch and versions hash, then any cache from the same branch, then any cache from any branch
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
+          key: ${{ runner.os }}-terraform-${{ github.head_ref }}-${{ hashFiles('**/versions.tf') }}
           restore-keys: |
-            ${{ runner.os }}-terraform-${{ github.base_ref }}
+            ${{ runner.os }}-terraform-${{ github.head_ref }}
             ${{ runner.os }}-terraform-
 
       - name: Terraform min/max versions
@@ -127,9 +127,9 @@ jobs:
           # restore latest matching cache to the tf cache dir
           # matches exact branch and versions hash, then any cache from the same branch, then any cache from any branch
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
+          key: ${{ runner.os }}-terraform-${{ github.head_ref }}-${{ hashFiles('**/versions.tf') }}
           restore-keys: |
-            ${{ runner.os }}-terraform-${{ github.base_ref }}
+            ${{ runner.os }}-terraform-${{ github.head_ref }}
             ${{ runner.os }}-terraform-
 
       - name: Install tfsec
@@ -156,4 +156,4 @@ jobs:
           # caches cannot be updated, we can only save this hash once,
           # after validating all blueprints we should have all plugins in cache.
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
-          key: ${{ runner.os }}-terraform-${{ github.base_ref }}-${{ hashFiles('**/versions.tf') }}
+          key: ${{ runner.os }}-terraform-${{ github.head_ref }}-${{ hashFiles('**/versions.tf') }}
