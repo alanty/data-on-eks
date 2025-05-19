@@ -40,8 +40,11 @@ module "eks" {
       most_recent              = true
     }
 
-    metrics-server = {}
+    metrics-server = {
+      most_recent = true
+    }
     amazon-cloudwatch-observability = {
+      most_recent              = true
       preserve                 = true
       service_account_role_arn = aws_iam_role.cloudwatch_observability_role.arn
     }
