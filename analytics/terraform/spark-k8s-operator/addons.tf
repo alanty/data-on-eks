@@ -696,19 +696,25 @@ module "eks_data_addons" {
             # default: "yunikorn"
         #   -- Uncomment this for Spark Operator scale test
         #   -- Spark Operator is CPU bound so add more CPU or use compute optimized instance for handling large number of job submissions
-        #   nodeSelector:
-        #     NodeGroupType: spark-operator-benchmark
-        #   resources:
-        #     requests:
-        #       cpu: 33000m
-        #       memory: 50Gi
-        # webhook:
-        #   nodeSelector:
-        #     NodeGroupType: spark-operator-benchmark
-        #   resources:
-        #     requests:
-        #       cpu: 1000m
-        #       memory: 10Gi
+          nodeSelector:
+            NodeGroupType: spark-operator-benchmark
+          tolerations:
+            - key: spark-operator-benchmark
+              operator: "Exists"
+          resources:
+            requests:
+              cpu: 33000m
+              memory: 50Gi
+        webhook:
+          nodeSelector:
+            NodeGroupType: spark-operator-benchmark
+          tolerations:
+            - key: spark-operator-benchmark
+              operator: "Exists"
+          resources:
+            requests:
+              cpu: 1000m
+              memory: 10Gi
         spark:
           # -- List of namespaces where to run spark jobs.
           # If empty string is included, all namespaces will be allowed.
