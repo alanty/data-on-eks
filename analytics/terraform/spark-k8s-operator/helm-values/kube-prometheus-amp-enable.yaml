@@ -19,8 +19,8 @@ prometheus:
           maxShards: 200
           capacity: 2500
     retention: 5h
-    scrapeInterval: 30s
-    evaluationInterval: 30s
+    scrapeInterval: 15s
+    evaluationInterval: 15s
     scrapeTimeout: 10s
     storageSpec:
       volumeClaimTemplate:
@@ -105,32 +105,32 @@ prometheus:
           action: keep
           regex: default;kubernetes;https
   # Monitors for Spark Jobs
-  additionalPodMonitors:
-    - name: "spark-job-monitoring"
-      jobLabel: "spark-job-monitoring"
-      selector:
-        matchLabels:
-          spark-role: driver
-      namespaceSelector:
-        matchNames:
-          - spark-team-a
-          - spark-team-b
-          - spark-team-c
-          - spark-s3-express
-      podMetricsEndpoints:
-        - port: "spark-ui"
-          interval: 30s
-          path: /metrics/driver/prometheus/
-        - port: "spark-ui"
-          interval: 30s
-          path: /metrics/executors/prometheus/
+  # additionalPodMonitors:
+  #   - name: "spark-job-monitoring"
+  #     jobLabel: "spark-job-monitoring"
+  #     selector:
+  #       matchLabels:
+  #         spark-role: driver
+  #     namespaceSelector:
+  #       matchNames:
+  #         - spark-team-a
+  #         - spark-team-b
+  #         - spark-team-c
+  #         - spark-s3-express
+  #     podMetricsEndpoints:
+  #       - port: "spark-ui"
+  #         interval: 30s
+  #         path: /metrics/driver/prometheus/
+  #       - port: "spark-ui"
+  #         interval: 30s
+  #         path: /metrics/executors/prometheus/
 
 # add ethtool metrics to node-exporter https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-network-performance-ena.html
-prometheus-node-exporter:
-  extraArgs:
-    - --collector.ethtool
-    - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
-    - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
+# prometheus-node-exporter:
+#   extraArgs:
+#     - --collector.ethtool
+#     - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+#     - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$
 
 alertmanager:
   enabled: false

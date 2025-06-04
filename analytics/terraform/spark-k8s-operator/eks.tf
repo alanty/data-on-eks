@@ -139,7 +139,8 @@ module "eks" {
       max_size     = 9
       desired_size = 3
 
-      instance_types = ["m5.xlarge"]
+      # increase instance size for Prometheus/KSM
+      instance_types = ["m6a.4xlarge"]
 
       labels = {
         WorkerType    = "ON_DEMAND"
