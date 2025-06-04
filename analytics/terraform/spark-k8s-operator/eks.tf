@@ -154,7 +154,7 @@ module "eks" {
     }
 
     spark_operator = {
-      name        = "spark-operator-benchmark"
+      name        = "spark_operator"
       description = "Managed node group for Spark Benchmarks with NVMEe SSD using x86 or ARM"
       # Filtering only Secondary CIDR private subnets starting with "100.". Subnet IDs where the nodes/node groups will be provisioned
       subnet_ids = [element(compact([for subnet_id, cidr_block in zipmap(module.vpc.private_subnets, module.vpc.private_subnets_cidr_blocks) :
@@ -166,9 +166,9 @@ module "eks" {
       # Node group will be created with zero instances when you deploy the blueprint.
       # You can change the min_size and desired_size to 6 instances
       # desired_size might not be applied through terrafrom once the node group is created so this needs to be adjusted in AWS Console.
-      min_size     = var.spark_benchmark_ssd_min_size # Change min and desired to 6 for running benchmarks
-      max_size     = 8
-      desired_size = var.spark_benchmark_ssd_desired_size # Change min and desired to 6 for running benchmarks
+      min_size     = 0 # Change min and desired to 6 for running benchmarks
+      max_size     = 1
+      desired_size = 1 # Change min and desired to 6 for running benchmarks
 
       instance_types = ["c5.9xlarge"] # c5d.12xlarge = 2 x 900 NVMe SSD
 
