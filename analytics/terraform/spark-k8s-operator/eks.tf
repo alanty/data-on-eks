@@ -19,7 +19,9 @@ module "eks" {
   # Amazon EKS Managed Add-ons
   #---------------------------------------
   cluster_addons = {
-    coredns                = {}
+    coredns                = {
+      most_recent    = true
+    }
     eks-pod-identity-agent = {}
     vpc-cni = {
       before_compute = true
