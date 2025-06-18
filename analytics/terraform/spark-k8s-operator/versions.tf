@@ -12,7 +12,7 @@ terraform {
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.4.1"
+      version = "~= 2.17.0"
     }
     kubectl = {
       source  = "alekc/kubectl"
