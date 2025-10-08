@@ -143,24 +143,6 @@ variable "enable_ingress_nginx" {
   default     = true
 }
 
-#---------------------------------------------------
-# SPARK K8S OPERATOR
-#---------------------------------------------------
-variable "enable_spark_operator" {
-  description = "Enable Spark on K8s Operator add-on"
-  type        = bool
-  default     = false
-}
-
-#---------------------------------------------------
-# APACHE YUNIKORN
-#---------------------------------------------------
-variable "enable_yunikorn" {
-  description = "Enable Apache YuniKorn K8s scheduler add-on"
-  type        = bool
-  default     = false
-}
-
 variable "enable_jupyterhub" {
   default     = true
   description = "Enable Jupyter Hub"

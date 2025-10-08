@@ -1,10 +1,10 @@
-# Holistic Cat Cafe: Real-Time Data Platform Workshop
+# DoEKS Cat Cafe: Real-Time Data Platform Workshop
 
-Build a complete streaming data platform using the story of managing a modern cat cafe. This hands-on workshop covers the full data engineering stack—from real-time event processing to historical analytics—all deployed on Kubernetes.
+Build a complete streaming data platform using the story of managing a modern cat cafe. This hands-on workshop covers the full data engineering stack, from real-time event processing to historical analytics, all deployed on Kubernetes.
 
 ## What You'll Build
 
-A production-ready data platform that:
+An open source data platform that:
 - Ingests live events from cafe operations (cat interactions, wellness monitoring, visitor activity)
 - Processes data streams in real-time to generate alerts and insights
 - Stores all data in a modern lakehouse architecture for historical analysis
@@ -70,6 +70,9 @@ The platform follows a modern lakehouse architecture with both streaming and bat
 Deploy the cafe's operational database containing cat and visitor profiles:
 
 ```bash
+# Update kubeconfig to use the created cluster
+aws eks update-kubeconfig --name  data-on-eks --alias data-on-eks
+
 export WORKSHOPDIR=$(git rev-parse --show-toplevel)/data-stacks/workshop
 
 kubectl apply -f $WORKSHOPDIR/manifests/postgresql.yaml
@@ -82,24 +85,31 @@ kubectl wait --for=condition=ready pod/postgresql-0 -n workshop --timeout=300s
 
 
 
-
-
-
 ### Step 2: Generate Sample Data
 
-Create realistic cat and visitor data in the database:
+Create cat and visitor data in the database:
+
+In another terminal open port-forward:
 
 ```bash
 # Port-forward to PostgreSQL
-kubectl port-forward postgresql-0 5432:5432 -n workshop &
+kubectl port-forward postgresql-0 5432:5432 -n workshop
+```
 
+Go back to the first terminal, then generate data
+
+```bash
 # Generate sample data
 cd $WORKSHOPDIR/src/data-flow
 uv sync --frozen
 uv run data-generator.py
 ```
 
+In the second terminal, kill the port-forward process by pressing `ctrl + c`. 
+
+
 **Validate:** Check that data was created:
+
 ```bash
 # Connect to database
 kubectl exec -it postgresql-0 -n workshop -- psql -U workshop
@@ -120,9 +130,17 @@ First, deploy the Kafka cluster provided by the Strimzi operator.
 kubectl apply -f $WORKSHOPDIR/manifests/kafka-cluster.yaml
 ```
 
-**Validate:** Wait for the Kafka cluster to be ready. This may take a few minutes.
+**Validate:** Wait for the Kafka cluster to be ready. This will take a few minutes because
+nodes are provisioned by Karpenter on demand. Karpenter needs to create new instances and register them for use by the cluster.
+
 ```bash
+# Verify nodeclaims are created
+kubectl get nodeclaim
+
 kubectl wait kafka/cluster --for=condition=Ready -n kafka --timeout=300s
+
+# Once the Kafka cluster is ready, the nodeclaims should alo be ready
+kubectl get nodeclaim
 ```
 
 Next, set up the event streaming topics required for the workshop:
@@ -192,7 +210,7 @@ kubectl apply -f $WORKSHOPDIR/manifests/kafka-debug-pod.yaml
 Once the pod is running, use it to consume messages from the `cat-interactions` topic. The `--from-beginning` flag ensures you see all messages in the topic from the start.
 
 ```bash
-kubectl exec -it kafka-debug-pod -n workshop -- \
+kubectl exec -it kafka-debug -n workshop -- \
   kafka-console-consumer \
   --bootstrap-server cluster-broker-0.cluster-kafka-brokers.kafka.svc:9092 \
   --topic cat-interactions \
@@ -238,13 +256,13 @@ bash deploy-flink.sh
 kubectl get flinkdeployments -n flink-team-a
 ```
 
-You should see `cat-cafe-raw-ingestion` in `READY` state.
+You should see `cat-cafe-raw-ingestion` in `RECONCILING` state.
 
 ### Step 3: Monitor Flink Job
 
 Check that the Flink pods are running:
 ```bash
-kubectl get pods -n flink-team-a -l app=cat-cafe-raw-ingestion
+kubectl get pods -n flink-team-a
 ```
 
 Wait for both JobManager and TaskManager pods to be ready.
@@ -272,6 +290,14 @@ In the Flink UI, you should see:
 - Records consumed from each Kafka topic
 - Records written to Iceberg tables
 - No failures or restarts
+
+Verify data is written to your S3 bucket
+
+```bash
+aws s3 ls s3://$S3_BUCKET/iceberg-warehouse/data_on_eks.db/cafe_orders_raw/
+```
+
+The output of this command should show `data` and `metadata` prefixes, which are created by Iceberg. This confirms that the Flink job is successfully writing data from the Kafka streams to the Iceberg table on S3. We will explore the structure of Iceberg tables in more detail in Module 5.
 
 ### What You Accomplished
 
@@ -301,12 +327,18 @@ export DATAHUB_TOKEN=abc
 bash deploy-flink-alert.sh
 ```
 
+This script defines and executes two Flink SQL jobs that run in parallel:
+
+1.  **The Cat Wellness Guardian (Stateless):** This job consumes from the `cat-wellness-iot` topic. It applies simple filters to identify cats that are dehydrated (haven't had a drink in over 4 hours) or stressed (activity level is too low) and publishes the findings to the `cat-health-alerts` topic.
+2.  **The Adopter Detective (Stateful):** This job consumes from the `cat-interactions` topic. It performs a stateful aggregation, keeping track of how many distinct cats a visitor has "liked." If a visitor likes more than three cats, the job publishes an alert to the `potential-adopters` topic.
+
+
 **Validate:** Check both Flink deployments:
 ```bash
 kubectl get flinkdeployments -n flink-team-a
 ```
 
-You should see `cat-cafe-alerts` in `READY` state.
+You should see `cat-cafe-alerts` in `RECONCILING` state.
 
 ### Step 2: Monitor Alert Jobs
 
@@ -346,17 +378,10 @@ In the Flink UI, you should see two running jobs:
 Verify alerts are being generated:
 ```bash
 # Monitor health alerts
-kubectl exec -it kafka-debug-pod -n workshop -- \
+kubectl exec -it kafka-debug -n workshop -- \
   kafka-console-consumer \
   --bootstrap-server cluster-broker-0.cluster-kafka-brokers.kafka.svc:9092 \
   --topic cat-health-alerts \
-  --from-beginning
-
-# Monitor adoption alerts (in another terminal)
-kubectl exec -it kafka-debug-pod -n workshop -- \
-  kafka-console-consumer \
-  --bootstrap-server cluster-broker-0.cluster-kafka-brokers.kafka.svc:9092 \
-  --topic potential-adopters \
   --from-beginning
 ```
 
@@ -377,8 +402,6 @@ You built the brain of the real-time platform by deploying two distinct Flink SQ
 - Flink UI shows processing metrics for both jobs
 
 ---
-
-
 
 ## Module 4: Live Alert Dashboard
 
@@ -446,7 +469,10 @@ Port-forward to the JupyterHub service:
 kubectl port-forward -n jupyterhub svc/proxy-public 8000:80
 ```
 
-Open your browser to `http://localhost:8000` and log in.
+Open your browser to `http://localhost:8000` and log in"
+
+* Username: `user1`
+* Password: `welcome`
 
 ### Step 2: Start Your Spark Environment
 
@@ -464,7 +490,7 @@ Karpenter will automatically provision a new node for your Spark environment. Th
 Next, copy the workshop's analytics notebook into your running Jupyter environment.
 
 ```bash
-POD_NAME=$(kubectl get pods -n jupyterhub -l app=jupyterhub,component=singleuser-server -o jsonpath='{.items[0].metadata.name}') && kubectl cp /home/ubuntu/data-on-eks/data-stacks/workshop/src/spark/adhoc.ipynb jupyterhub/$POD_NAME:/home/jovyan/adhoc.ipynb
+POD_NAME=$(kubectl get pods -n jupyterhub -l app=jupyterhub,component=singleuser-server -o jsonpath='{.items[0].metadata.name}') && kubectl cp $WORKSHOPDIR/src/spark/adhoc.ipynb jupyterhub/$POD_NAME:/home/jovyan/adhoc.ipynb
 ```
 
 Once the file is copied, you will see it in the Jupyter file browser on the left. Double-click `adhoc.ipynb` to open it.
@@ -521,6 +547,94 @@ You acted as a data analyst, using Spark and Jupyter to connect to a data lakeho
 
 ---
 
+## Module 6: Productionizing Batch Jobs with Spark Operator
+
+**Goal:** Transition from an interactive notebook to a production-style, repeatable batch job using the Spark Operator for Kubernetes.
+
+**Why this matters:** While notebooks are excellent for exploration, production data pipelines need to be robust, repeatable, and manageable. The Spark Operator allows you to define Spark jobs declaratively using Kubernetes custom resources, bringing GitOps and automation best practices to your batch workloads.
+
+### What is the Spark Operator?
+
+The Spark Operator is a Kubernetes controller that manages the lifecycle of Spark applications. Instead of using `spark-submit`, you define your job in a `SparkApplication` YAML manifest, which specifies everything from the application code and dependencies to the driver/executor resources. The operator watches for these resources and handles the complex work of submitting the job to Kubernetes, monitoring its status, and cleaning up resources.
+
+### Step 1: Review the Batch Job Script
+
+First, take a look at the `enriched-cat-summary.py` script located in the `$WORKSHOPDIR/src/spark/` directory. You will notice it implements the exact same transformation logic you ran in the Jupyter notebook in the previous module. The key difference is that this script is designed to be run as a standalone batch job, writing its final output to a production Iceberg table.
+
+### Step 2: Deploy the Spark Application
+
+Now, you will deploy this script as a formal application using the deployment script you created.
+
+```bash
+# Ensure you are in the correct directory
+cd $WORKSHOPDIR/src/spark/
+
+# Run the deployment script
+./deploy-spark-app.sh
+```
+
+This script does three things:
+1.  Injects the Python script into a `ConfigMap`.
+2.  Substitutes the `$S3_WAREHOUSE_PATH` environment variable.
+3.  Applies the resulting `SparkApplication` manifest to the cluster.
+
+### Step 3: Monitor the Application
+
+Check the status of the application you just deployed.
+
+```bash
+kubectl get sparkapplication -n spark-team-a
+```
+
+You should see the `cat-summary` application with a status of `RUNNING`. It will transition to `COMPLETED` after a minute or two.
+
+```
+NAME          STATUS      ATTEMPTS   START TIME           FINISH TIME
+cat-summary   COMPLETED   1          2025-10-08T12:00:00Z   2025-10-08T12:01:30Z
+```
+
+### Step 4: Explore the Spark History Server
+
+Once the job is complete, you can analyze its execution details in the Spark History Server.
+
+First, port-forward to the history server:
+```bash
+kubectl port-forward -n spark-history-server svc/spark-history-server 18080:18080
+```
+
+Now, open your browser to `http://localhost:18080`. You should see your `cat-summary` application in the list of completed applications. Click on it to explore the UI.
+
+**Interesting things to look for:**
+*   **DAG Visualization:** On the **Jobs** tab, click on a job description to see the Directed Acyclic Graph (DAG) of the Spark execution plan. This shows you how Spark broke your transformation into stages and tasks.
+*   **SQL/DataFrame Query:** Go to the **SQL / DataFrame** tab to see the query plan for your `daily_summary_df` dataframe, from the initial reads to the final aggregations and joins.
+*   **Environment:** The **Environment** tab shows all the Spark configuration properties that were used for the run, which is useful for debugging.
+
+![](./images/shs-ui.png)
+
+
+### Step 5: Verify the Output in S3
+
+Finally, verify that the job successfully wrote the new summary table to your data lake.
+
+```bash
+aws s3 ls s3://${S3_BUCKET}/iceberg-warehouse/data_on_eks.db/enriched_daily_cat_summary/
+```
+
+You should see the `data` and `metadata` prefixes, confirming the Iceberg table was created.
+
+### What You Accomplished
+
+You successfully productionized an analytics script by packaging it as a `SparkApplication`. You learned how the Spark Operator for Kubernetes allows you to manage batch jobs declaratively, and you used the Spark History Server to analyze the execution of a completed job. 
+
+**Key Takeaway:** You have now seen the complete journey from interactive, ad-hoc analysis in a notebook to a repeatable, production-ready batch job managed as a Kubernetes resource.
+
+**Success Criteria:**
+- Deployed a `SparkApplication` using the deployment script.
+- Monitored the application until it reached the `COMPLETED` state.
+- Explored the job's execution details in the Spark History Server.
+- Verified that the output data was written to the Iceberg table in S3.
+
+---
 ## Module 6: BI Dashboard and Federated Queries
 
 **Goal:** Connect Apache Superset to the project's data sources and build a dashboard to visualize analytics from the Iceberg data lake. Along the way, you'll discover a common data architecture challenge and learn how federated query engines like Trino solve it.
@@ -639,4 +753,20 @@ You successfully connected a BI tool, Apache Superset, to two different data sou
 - Understood why you cannot join tables from two different Superset database connections.
 - Learned that Trino can act as a federation layer to solve this problem.
 - Successfully queried the `daily_cat_summary` table from the Iceberg lakehouse using Superset's SQL Lab.
+
+
+
+# Work in Progress modules
+
+### Airflow / Kubeflow / Argo Workflows
+
+Use one of the above technologies to orchestrate jobs.
+
+### Datahub
+
+Use datahub to track data lineages
+
+### Ranger
+
+ACL
 
