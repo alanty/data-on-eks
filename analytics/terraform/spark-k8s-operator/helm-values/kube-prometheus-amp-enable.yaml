@@ -124,6 +124,15 @@ prometheus:
         - port: "spark-ui"
           interval: 30s
           path: /metrics/executors/prometheus/
+        - port: "spark-ui"
+          interval: 30s
+          path: /metrics/shuffle/prometheus/
+        - port: "spark-ui"
+          interval: 30s
+          path: /metrics/master/prometheus/
+        - port: "spark-ui"
+          interval: 30s
+          path: /metrics/applications/prometheus/
 
 # add ethtool metrics to node-exporter https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/monitoring-network-performance-ena.html
 prometheus-node-exporter:
